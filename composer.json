@@ -1,0 +1,10 @@
+{
+    "name": "arifu/my-ruptar",
+    "type": "composer-plugin",
+    "autoload": {
+        "psr-4": {
+            "Arifu\\MyRuptar\\": "src/"
+        }
+    },
+    "require": {}
+}
