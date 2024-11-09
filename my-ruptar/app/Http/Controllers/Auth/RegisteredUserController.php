@@ -32,12 +32,18 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'role' => 'required|in:student,warden',
+            'student_id' => ['nullable', 'string', 'max:20', 'required_if:role,student'], // Only required if role is student
+            'contact_number' => ['required', 'string', 'max:15', 'regex:/^\d{10,15}$/'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'role' => $request->input('role'),
+            'student_id' =>$request->student_id,
+            'contact_number' => $request->contact_number,
             'password' => Hash::make($request->password),
         ]);
 
