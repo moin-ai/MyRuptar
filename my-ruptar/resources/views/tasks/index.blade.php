@@ -110,6 +110,46 @@
     </form>
 </div>
 
+ <!-- Tasks Grid -->
+ <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+        @foreach ($tasks as $task)
+        <div class="bg-white dark:bg-gray-800 bg-opacity-40 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105" style="backdrop-filter: blur(10px);">
+            <div class="mb-4">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    {{ $task->name }}
+                </h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ $task->description }}
+                </p>
+            </div>
+            @if($task->image)
+            <div class="mb-4">
+            <img 
+        src="{{ $task->image ? asset('storage/' . $task->image) : asset('images/default-task.png') }}" 
+        alt="Task Image" 
+        class="w-full h-32 object-cover rounded-md"
+    ></div>
+            @endif
+            <div class="flex justify-between items-center">
+                <!-- Edit Button -->
+                
+                <button onclick="openEditTaskModal({{ json_encode($task) }})" class="bg-yellow-500 text-white px-4 py-2 rounded-md">Edit</button>
+
+                <!-- Delete Button -->
+                <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure?')">
+                    @csrf
+                    @method('DELETE')
+                    <button 
+                        type="submit" 
+                        class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300">
+                        {{ __('Delete') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
 
     <!-- Toggle Form Visibility Script -->
     <script>
@@ -158,5 +198,76 @@
         }).showToast();
     @endif
 </script>
+
+<!-- Edit Task Modal -->
+<div id="editTaskModal" class="fixed z-10 inset-0 overflow-y-auto hidden border">
+    <div class="flex items-center justify-center min-h-screen">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-md shadow-lg w-96">
+
+            <h2 class="text-lg font-bold mb-4">Edit Task</h2>
+            <form id="editTaskForm" method="POST" action="" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
+                <!-- Task Name -->
+                <div class="mb-4">
+                    <label for="editName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
+                    <input type="text" id="editName" name="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
+                </div>
+
+                <!-- Task Description -->
+                <div class="mb-4">
+                    <label for="editDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Description</label>
+                    <textarea id="editDescription" name="description" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required></textarea>
+                </div>
+
+                <!-- Task Due Date -->
+                <div class="mb-4">
+                    <label for="editDueDate" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Due Date</label>
+                    <input type="date" id="editDueDate" name="due_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
+                </div>
+
+                <!-- Task Image -->
+                <div class="mb-4">
+                    <label for="editImage" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Image</label>
+                    <input type="file" id="editImage" name="image" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300">
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeEditTaskModal()" class="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditTaskModal(task) {
+    // Get the modal and form elements
+    const modal = document.getElementById('editTaskModal');
+    const form = document.getElementById('editTaskForm');
+
+    // Populate form fields with task data
+    document.getElementById('editName').value = task.name || '';
+    document.getElementById('editDescription').value = task.description || '';
+    document.getElementById('editDueDate').value = task.due_date || '';
+
+
+    // Set form action URL
+    form.action = `/tasks/${task.id}`;
+
+    // Show the modal
+    modal.classList.remove('hidden');
+}
+
+function closeEditTaskModal() {
+    // Hide the modal
+    const modal = document.getElementById('editTaskModal');
+    modal.classList.add('hidden');
+}
+
+    </script>
 
 </x-app-layout>
