@@ -11,6 +11,11 @@
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     <title>{{ config('app.name', 'Laravel') }}</title>
+<!-- Toastify CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<!-- Flatpickr (Modern Date Picker) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

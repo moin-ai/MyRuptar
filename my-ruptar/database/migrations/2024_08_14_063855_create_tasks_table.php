@@ -9,17 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
-            $table->longText('description');
-            $table->dateTime('due_date');
-            $table->text('name');
-            $table->enum('status', ['pending', 'completed']);
-            $table->timestamps();
-        });
-    }
+    public function up()
+{
+    Schema::create('tasks', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->text('description');
+        $table->date('due_date');
+        $table->string('image')->nullable();
+        $table->timestamps();
+    });
+}
+
+
 
     /**
      * Reverse the migrations.
