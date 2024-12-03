@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\StudentController;
+
 
 
 
@@ -25,5 +27,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('tasks', TaskController::class);
+Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+Route::delete('/students/{id}', [StudentController::class, 'destroy'])->name('students.destroy');
+
+
 
 require __DIR__.'/auth.php';

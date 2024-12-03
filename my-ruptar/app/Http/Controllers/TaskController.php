@@ -8,11 +8,15 @@ use Illuminate\Support\Facades\Storage;
 
 class TaskController extends Controller
 {
+
+    
+
+    
     // Fetch and display tasks
     public function index()
     {
-        $tasks = Task::all(); // Fetch all tasks from the database
-        return view('tasks.index', compact('tasks')); // Pass tasks to the view
+        $tasks = Task::paginate(6); // 6 tasks
+    return view('tasks.index', compact('tasks'));
     }
 
     // Store a new task
@@ -56,6 +60,8 @@ class TaskController extends Controller
         'due_date' => 'required|date',
         'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
     ]);
+
+    
 
     // Find and update the task
     $task = Task::findOrFail($id);

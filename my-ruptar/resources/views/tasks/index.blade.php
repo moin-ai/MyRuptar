@@ -6,11 +6,12 @@
     </x-slot>
 
     <!-- Button to show the form -->
-    <div class="text-center my-4">
-        <x-primary-button id="createTaskButton">
-            {{ __('Create a Task') }}
-        </x-primary-button>
-    </div>
+    <div class="text-center my-4 pt-4">
+    <x-primary-button id="createTaskButton">
+        {{ __('Create a Task') }}
+    </x-primary-button>
+</div>
+
 
     <!-- Task Creation Form -->
     <div id="taskFormContainer" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mx-auto relative pt-6" style="max-width: 50%; width: 50%;">
@@ -111,44 +112,51 @@
 </div>
 
  <!-- Tasks Grid -->
- <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-        @foreach ($tasks as $task)
-        <div class="bg-white dark:bg-gray-800 bg-opacity-40 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105" style="backdrop-filter: blur(10px);">
-            <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {{ $task->name }}
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    {{ $task->description }}
-                </p>
-            </div>
-            @if($task->image)
-            <div class="mb-4">
-            <img 
-        src="{{ $task->image ? asset('storage/' . $task->image) : asset('images/default-task.png') }}" 
-        alt="Task Image" 
-        class="w-full h-32 object-cover rounded-md"
-    ></div>
-            @endif
-            <div class="flex justify-between items-center">
-                <!-- Edit Button -->
-                
-                <button onclick="openEditTaskModal({{ json_encode($task) }})" class="bg-yellow-500 text-white px-4 py-2 rounded-md">Edit</button>
-
-                <!-- Delete Button -->
-                <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure?')">
-                    @csrf
-                    @method('DELETE')
-                    <button 
-                        type="submit" 
-                        class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300">
-                        {{ __('Delete') }}
-                    </button>
-                </form>
-            </div>
+ <div id="taskGrid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+    @foreach ($tasks as $task)
+    <div class="bg-white dark:bg-gray-800 bg-opacity-40 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105" style="backdrop-filter: blur(10px);">
+        <div class="mb-4">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                {{ $task->name }}
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                {{ $task->description }}
+            </p>
         </div>
-        @endforeach
+        @if($task->image)
+        <div class="mb-4">
+            <img 
+                src="{{ $task->image ? asset('storage/' . $task->image) : asset('images/default-task.png') }}" 
+                alt="Task Image" 
+                class="w-full h-32 object-cover rounded-md">
+        </div>
+        @endif
+        <div class="flex justify-between items-center">
+            <button onclick="openEditTaskModal({{ json_encode($task) }})" class="bg-yellow-500 text-white px-4 py-2 rounded-md">Edit</button>
+            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300">
+                    {{ __('Delete') }}
+                </button>
+            </form>
+        </div>
     </div>
+    @endforeach
+</div>
+
+<!-- Load More Button -->
+<!-- Load More Button -->
+<div class="text-center mt-6">
+    @if ($tasks->hasMorePages())
+        <button id="loadMoreButton" 
+                class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-indigo-800">
+            Load More
+        </button>
+    @endif
+</div>
+
+
 
 
     <!-- Toggle Form Visibility Script -->
@@ -229,7 +237,7 @@
 
                 <!-- Task Image -->
                 <div class="mb-4">
-                    <label for="editImage" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Image</label>
+                    <label for="edit    " class="block text-sm font-medium text-gray-700 dark:text-gray-200">Image</label>
                     <input type="file" id="editImage" name="image" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300">
                 </div>
 
@@ -269,5 +277,28 @@ function closeEditTaskModal() {
 }
 
     </script>
+
+<script>
+    document.getElementById('loadMoreButton')?.addEventListener('click', function() {
+        let page = {{ $tasks->currentPage() }};
+        let nextPage = page + 1;
+
+        fetch(`?page=${nextPage}`, { method: 'GET' })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTasks = doc.querySelector('#taskGrid').innerHTML;
+                document.querySelector('#taskGrid').innerHTML += newTasks;
+
+                // Remove Load More button if there are no more pages
+                if (!doc.querySelector('#loadMoreButton')) {
+                    document.getElementById('loadMoreButton').remove();
+                }
+            })
+            .catch(error => console.error('Error loading more tasks:', error));
+    });
+</script>
+
 
 </x-app-layout>
