@@ -12,9 +12,14 @@ Route::get('/', function () {
 
 // Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Common dashboard for all users
+    // Role-based dashboards
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        if (auth()->user()->role === 'warden') {
+            return view('dashboard'); // Warden dashboard
+        } elseif (auth()->user()->role === 'student') {
+            return redirect()->route('students.dashboard'); // Redirect students to their dashboard
+        }
+        abort(403, 'Unauthorized'); // Handle unexpected roles
     })->name('dashboard');
 
     // Profile management (accessible by all authenticated users)
@@ -31,9 +36,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Routes for students
     Route::middleware(['role:student'])->group(function () {
-        Route::get('/tasks/student', [TaskController::class, 'studentView'])->name('tasks.studentView'); // View assigned tasks
-        Route::post('/tasks/{task}/complete', [TaskController::class, 'markComplete'])->name('tasks.complete'); // Mark tasks as complete
+        // Student Dashboard
+        Route::get('/students/dashboard', function () {
+            return view('students.dashboard');
+        })->name('students.dashboard');
+
+        // View assigned tasks
+        Route::get('/tasks/student', [TaskController::class, 'studentView'])->name('tasks.studentView');
+
+        // Mark tasks as complete
+        Route::post('/tasks/{task}/complete', [TaskController::class, 'markComplete'])->name('tasks.complete');
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
