@@ -5,153 +5,193 @@
         </h1>
     </x-slot>
 
-    <!-- Button to show the form -->
-    <div class="text-center my-4 pt-4">
-    <x-primary-button id="createTaskButton">
-        {{ __('Create a Task') }}
-    </x-primary-button>
+ <!-- Search and Action Bar -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="flex justify-between items-center gap-4">
+        <!-- Search Form -->
+        <form action="{{ route('tasks.index') }}" method="GET" class="flex-1">
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                    <input
+                        type="text"
+                        name="search"
+                        class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="Search tasks..."
+                        value="{{ request('search') }}"
+                    />
+                    <!--  -->
+                </div>
+            </div>
+        </form>
+
+        <!-- Create Task Button -->
+        <div class="flex items-center gap-3">
+            @if(request('search'))
+                <a href="{{ route('tasks.index') }}" 
+                   class="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200 flex items-center gap-2">
+                    <span>Clear</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            @endif
+            <button id="createTaskButton" 
+    class="group px-6 py-3 bg-gradient-to-br from-emerald-400 to-green-500 text-white rounded-xl hover:from-emerald-500 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-green-500/30 flex items-center gap-3">
+    <svg class="w-5 h-5 transform group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    <span class="font-medium">Create New Task</span>
+</button>
+
+        </div>
+    </div>
 </div>
 
 
-    <!-- Task Creation Form -->
-    <div id="taskFormContainer" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mx-auto relative pt-6" style="max-width: 50%; width: 50%;">
 
-    <!-- Form Title -->
-    <h1 class="text-xl font-bold text-center mb-4 text-gray-900 dark:text-gray-100">
-        {{ __('Create a Task') }}
-    </h1>
+  <!-- Task Creation Form -->
+  <div id="taskFormContainer" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mx-auto relative pt-6" style="max-width: 50%; width: 50%;">
 
-    <form method="POST" action="{{ route('tasks.store') }}" enctype="multipart/form-data">
-        @csrf
+<!-- Form Title -->
+<h1 class="text-xl font-bold text-center mb-4 text-gray-900 dark:text-gray-100">
+    {{ __('Create a Task') }}
+</h1>
 
-        <!-- Name -->
-        <div>
-            <label for="name" class="block font-medium text-gray-700 dark:text-gray-300">
-                {{ __('Task Name') }}
-            </label>
-            <input 
-                id="name" 
-                type="text" 
-                name="name" 
-                class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
-                :value="old('name')" 
-                required 
-                autofocus 
-            />
-            @error('name')
-                <span class="text-red-500 text-sm">{{ $message }}</span>
-            @enderror
-        </div>
+<form method="POST" action="{{ route('tasks.store') }}" enctype="multipart/form-data">
+    @csrf
 
-        <!-- Description -->
-        <div class="mt-4">
-            <label for="description" class="block font-medium text-gray-700 dark:text-gray-300">
-                {{ __('Description') }}
-            </label>
-            <textarea 
-                id="description" 
-                name="description" 
-                rows="4" 
-                class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
-                required>{{ old('description') }}</textarea>
-            @error('description')
-                <span class="text-red-500 text-sm">{{ $message }}</span>
-            @enderror
-        </div>
+    <!-- Name -->
+    <div>
+        <label for="name" class="block font-medium text-gray-700 dark:text-gray-300">
+            {{ __('Task Name') }}
+        </label>
+        <input 
+            id="name" 
+            type="text" 
+            name="name" 
+            class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
+            :value="old('name')" 
+            required 
+            autofocus 
+        />
+        @error('name')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
 
-        <!-- Due Date -->
-        <div class="mt-4">
-            <label for="due_date" class="block font-medium text-gray-700 dark:text-gray-300">
-                {{ __('Due Date') }}
-            </label>
-            <input 
-                id="due_date" 
-                type="text" 
-                name="due_date" 
-                class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
-                required 
-            />
-            @error('due_date')
-                <span class="text-red-500 text-sm">{{ $message }}</span>
-            @enderror
-        </div>
+    <!-- Description -->
+    <div class="mt-4">
+        <label for="description" class="block font-medium text-gray-700 dark:text-gray-300">
+            {{ __('Description') }}
+        </label>
+        <textarea 
+            id="description" 
+            name="description" 
+            rows="4" 
+            class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
+            required>{{ old('description') }}</textarea>
+        @error('description')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
 
-        <!-- Image Upload -->
-        <div class="mt-4">
-            <label for="image" class="block font-medium text-gray-700 dark:text-gray-300">
-                {{ __('Upload Image') }}
-            </label>
-            <input 
-                id="image" 
-                type="file" 
-                name="image" 
-                class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
-                accept="image/*" 
-            />
-            @error('image')
-                <span class="text-red-500 text-sm">{{ $message }}</span>
-            @enderror
-        </div>
+    <!-- Due Date -->
+    <div class="mt-4">
+        <label for="due_date" class="block font-medium text-gray-700 dark:text-gray-300">
+            {{ __('Due Date') }}
+        </label>
+        <input 
+            id="due_date" 
+            type="text" 
+            name="due_date" 
+            class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
+            required 
+        />
+        @error('due_date')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
 
 
 
-        <!-- Submit Button -->
-        <div class="flex items-center justify-end mt-6 space-x-4">
-    <!-- Close Button -->
-    <button id="closeTaskForm" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
-        {{ __('Close') }}
-    </button>
 
     <!-- Submit Button -->
-    <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
-        {{ __('Submit Task') }}
-    </button>
+    <div class="flex items-center justify-end mt-6 space-x-4">
+<!-- Close Button -->
+<button id="closeTaskForm" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+    {{ __('Close') }}
+</button>
+
+<!-- Submit Button -->
+<button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+    {{ __('Submit Task') }}
+</button>
 </div>
 
-    </form>
+</form>
 </div>
-
- <!-- Tasks Grid -->
- <div id="taskGrid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-    @foreach ($tasks as $task)
-    <div class="bg-white dark:bg-gray-800 bg-opacity-40 border border-gray-200 dark:border-gray-600 rounded-lg p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105" style="backdrop-filter: blur(10px);">
-        <div class="mb-4">
-            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200">
-                {{ $task->name }}
-            </h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ $task->description }}
-            </p>
+<!-- Tasks Grid -->
+<div id="taskGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+    @forelse ($tasks as $task)
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
+        <div class="space-y-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    {{ $task->name }}
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                    {{ $task->description }}
+                </p>
+            </div>
+            
+            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {{ \Carbon\Carbon::parse($task->due_date)->format('M d, Y h:i A') }}
+            </div>
         </div>
-        @if($task->image)
-        <div class="mb-4">
-            <img 
-                src="{{ $task->image ? asset('storage/' . $task->image) : asset('images/default-task.png') }}" 
-                alt="Task Image" 
-                class="w-full h-32 object-cover rounded-md">
-        </div>
-        @endif
-        <div class="flex justify-between items-center">
-            <button onclick="openEditTaskModal({{ json_encode($task) }})" class="bg-yellow-500 text-white px-4 py-2 rounded-md">Edit</button>
-            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure?')">
+        
+        <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button onclick="openEditTaskModal({{ json_encode($task) }})" 
+                    class="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+            </button>
+            
+            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" 
+                  onsubmit="return confirm('Are you sure you want to delete this task?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300">
-                    {{ __('Delete') }}
+                <button type="submit" 
+                        class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete
                 </button>
             </form>
         </div>
     </div>
-    @endforeach
+    @empty
+    <div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400 rounded-xl">
+        No tasks found.
+    </div>
+    @endforelse
 </div>
 
+
 <!-- Load More Button -->
-<!-- Load More Button -->
-<div class="text-center mt-6">
+<div class="text-center mt-6 mb-8">
     @if ($tasks->hasMorePages())
         <button id="loadMoreButton" 
-                class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-indigo-800">
-            Load More
+                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-indigo-800">
+            <span>Load More</span>
+            <svg class="w-5 h-5 ml-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
         </button>
     @endif
 </div>
@@ -213,7 +253,7 @@
     <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-md shadow-lg w-96">
 
             <h2 class="text-lg font-bold mb-4">Edit Task</h2>
-            <form id="editTaskForm" method="POST" action="" enctype="multipart/form-data">
+            <form id="editTaskForm" method="POST" action="">
                 @csrf
                 @method('PUT')
 
@@ -232,13 +272,7 @@
                 <!-- Task Due Date -->
                 <div class="mb-4">
                     <label for="editDueDate" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Due Date</label>
-                    <input type="date" id="editDueDate" name="due_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
-                </div>
-
-                <!-- Task Image -->
-                <div class="mb-4">
-                    <label for="edit    " class="block text-sm font-medium text-gray-700 dark:text-gray-200">Image</label>
-                    <input type="file" id="editImage" name="image" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300">
+                    <input type="text" id="editDueDate" name="due_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
                 </div>
 
                 <!-- Actions -->
@@ -250,6 +284,16 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Initialize Flatpickr for Edit Due Date
+    flatpickr("#editDueDate", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+    });
+</script>
+
 
 <script>
     function openEditTaskModal(task) {

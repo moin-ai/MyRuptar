@@ -8,18 +8,23 @@ use Illuminate\Support\Facades\Storage;
 
 class TaskController extends Controller
 {
-
-    
-
-    
-    // Fetch and display tasks
-    public function index()
+    // Fetch and display tasks with search
+    public function index(Request $request)
     {
-        $tasks = Task::paginate(6); // 6 tasks
-    return view('tasks.index', compact('tasks'));
+        $query = Task::query();
+        
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+        
+        $tasks = $query->orderBy('due_date', 'asc')->paginate(6);
+        return view('tasks.index', compact('tasks'));
     }
 
-    // Store a new task
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -43,54 +48,42 @@ class TaskController extends Controller
         return redirect()->back()->with('success', 'Task created successfully!');
     }
 
-    // Edit task (fetch task data for editing)
     public function edit($id)
     {
-        $task = Task::findOrFail($id); // Fetch task by ID or fail
-        return response()->json($task); // Return task data as JSON for the frontend
+        $task = Task::findOrFail($id);
+        return response()->json($task);
     }
 
-    // Update task
     public function update(Request $request, $id)
-{
-    // Validate input
-    $validatedData = $request->validate([
-        'name' => 'required|string|max:255',
-        'description' => 'required|string',
-        'due_date' => 'required|date',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ]);
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'due_date' => 'required|date',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
-    
+        $task = Task::findOrFail($id);
+        $task->name = $validatedData['name'];
+        $task->description = $validatedData['description'];
+        $task->due_date = $validatedData['due_date'];
 
-    // Find and update the task
-    $task = Task::findOrFail($id);
-    $task->name = $validatedData['name'];
-    $task->description = $validatedData['description'];
-    $task->due_date = $validatedData['due_date'];
-
-    if ($request->hasFile('image')) {
-        // Optional: Delete the old image
-        if ($task->image) {
-            Storage::disk('public')->delete($task->image);
+        if ($request->hasFile('image')) {
+            if ($task->image) {
+                Storage::disk('public')->delete($task->image);
+            }
+            $task->image = $request->file('image')->store('task-images', 'public');
         }
 
-        // Store the new image
-        $task->image = $request->file('image')->store('task-images', 'public');
+        $task->save();
+
+        return redirect()->back()->with('success', 'Task updated successfully!');
     }
 
-    $task->save();
-
-    return redirect()->back()->with('success', 'Task updated successfully!');
-}
-
-
-    // Delete task
     public function destroy($id)
     {
         $task = Task::findOrFail($id);
 
-        // Delete image if exists
         if ($task->image) {
             Storage::disk('public')->delete($task->image);
         }
@@ -99,6 +92,4 @@ class TaskController extends Controller
 
         return redirect()->back()->with('success', 'Task deleted successfully!');
     }
-
-    
 }
