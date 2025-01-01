@@ -1,8 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -25,16 +28,35 @@ class StudentController extends Controller
 
     public function destroy($id)
     {
-        $student = Student::students()->find($id);
-
-        if (!$student) {
+        try {
+            // Start transaction
+            DB::beginTransaction();
+            
+            // Delete task assignments first
+            DB::table('task_assignments')
+                ->where('user_id', $id)
+                ->delete();
+            
+            // Delete the student
+            User::where('id', $id)
+                ->where('role', 'student')
+                ->delete();
+            
+            // Commit transaction
+            DB::commit();
+            
             return redirect()->route('students.index')
-                ->with('error', 'Student not found.');
+                ->with('success', 'Student deleted successfully');
+                
+        } catch (\Exception $e) {
+            // Rollback transaction if anything fails
+            DB::rollBack();
+            
+            // Log the error for debugging
+            \Log::error('Student deletion failed: ' . $e->getMessage());
+            
+            return redirect()->route('students.index')
+                ->with('error', 'Failed to delete student. Please try again.');
         }
-
-        $student->delete();
-
-        return redirect()->route('students.index')
-            ->with('success', 'Student deleted successfully.');
     }
 }
