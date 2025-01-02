@@ -26,28 +26,31 @@
         })->name('dashboard');
 
         // Warden routes
-        Route::middleware(['role:warden'])->group(function () {
-            Route::get('/dashboard/warden', [DashboardController::class, 'wardenDashboard'])->name('warden.dashboard');
-            Route::resource('tasks', TaskController::class);
-            Route::get('/students', [StudentController::class, 'index'])->name('students.index');
-            Route::delete('/students/{id}', [StudentController::class, 'destroy'])->name('students.destroy');
-            Route::middleware(['auth', 'role:student'])->group(function () {
-                Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
-                Route::post('/tasks/{task}/complete', [TaskCompletionController::class, 'markComplete'])->name('tasks.complete');
-            });
-            
-        });
+        // Warden routes
+Route::middleware(['role:warden'])->group(function () {
+    Route::get('/dashboard/warden', [DashboardController::class, 'wardenDashboard'])->name('warden.dashboard');
+    Route::resource('tasks', TaskController::class);
+    Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+    Route::delete('/students/{id}', [StudentController::class, 'destroy'])->name('students.destroy');
+});
+
+// Student routes
+Route::middleware(['role:student'])->group(function () {
+    Route::get('/students/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+    Route::post('/tasks/{assignmentId}/complete', [StudentDashboardController::class, 'markComplete'])->name('tasks.complete');
+});
+
 
         // Profile routes
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-        // Student routes
-Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/students/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
-    Route::get('/tasks/student', [TaskController::class, 'studentView'])->name('tasks.studentView');
-    Route::post('/tasks/{task}/complete', [TaskController::class, 'markComplete'])->name('tasks.complete');
-});
+//         // Student routes
+// Route::middleware(['auth', 'role:student'])->group(function () {
+//     Route::get('/students/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+//     Route::get('/tasks/student', [TaskController::class, 'studentView'])->name('tasks.studentView');
+//     Route::post('/tasks/{task}/complete', [TaskController::class, 'markComplete'])->name('tasks.complete');
+// });
 
 
     });

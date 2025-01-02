@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Task;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class TaskController extends Controller
 {
@@ -40,29 +42,50 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        // Authorize the action using a Gate
         Gate::authorize('create-task');
-
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'due_date' => 'required|date',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        $task = new Task();
-        $task->name = $validatedData['name'];
-        $task->description = $validatedData['description'];
-        $task->due_date = $validatedData['due_date'];
-
-        if ($request->hasFile('image')) {
-            $task->image = $request->file('image')->store('task-images', 'public');
+    
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'required|string',
+                'due_date' => 'required|date|after:now',
+                'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
+    
+            DB::beginTransaction();
+    
+            $task = Task::create([
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'due_date' => $validated['due_date'],
+                'image' => $request->hasFile('image') ? 
+                    $request->file('image')->store('task-images', 'public') : null
+            ]);
+    
+            // Get all students and create assignments
+            $students = User::where('role', 'student')->get();
+            $assignments = $students->map(function($student) use ($task) {
+                return [
+                    'task_id' => $task->id,
+                    'user_id' => $student->id,
+                    'assigned_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            })->toArray();
+    
+            DB::table('task_assignments')->insert($assignments);
+    
+            DB::commit();
+            return redirect()->back()->with('success', 'Task created and assigned to all students!');
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Task creation failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create task. Please try again.');
         }
-
-        $task->save();
-
-        return redirect()->back()->with('success', 'Task created successfully!');
     }
+    
 
     /**
      * Show the form for editing the specified task.
