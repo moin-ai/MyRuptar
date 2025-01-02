@@ -51,6 +51,11 @@ Route::middleware(['role:student'])->group(function () {
 //     Route::get('/tasks/student', [TaskController::class, 'studentView'])->name('tasks.studentView');
 //     Route::post('/tasks/{task}/complete', [TaskController::class, 'markComplete'])->name('tasks.complete');
 // });
+Route::post('/notifications/{id}/mark-as-read', function($id) {
+    auth()->user()->unreadNotifications->where('id', $id)->markAsRead();
+    return back();
+})->name('notifications.markAsRead');
+
 
 
     });
