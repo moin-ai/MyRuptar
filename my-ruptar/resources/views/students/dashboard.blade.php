@@ -136,17 +136,37 @@
                 @endif
             </td>
 
-            <!-- Actions -->
             <td class="px-6 py-4 whitespace-nowrap">
-                @if(!$task->completed_at && !$task->is_overdue)
-                    <form action="{{ route('tasks.complete', $task->assignment_id) }}" method="POST" class="inline-block">
-                        @csrf
-                        <button type="submit" class="px-3 py-1 text-sm bg-blue-500 text-white dark:bg-blue-600 dark:text-white rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-150">
-                            Mark Complete
-                        </button>
-                    </form>
-                @endif
-            </td>
+    @if(!$task->completed_at && !$task->is_overdue)
+        <!-- Form for Marking Task as Complete with Proof -->
+        <form action="{{ route('tasks.complete', $task->assignment_id) }}" method="POST" enctype="multipart/form-data" class="inline-block">
+            @csrf
+
+            <!-- File Input for Proof -->
+            <div class="mb-2">
+                <label for="proof_{{ $task->id }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Attach Proof
+                </label>
+                <input 
+                    type="file" 
+                    id="proof_{{ $task->id }}" 
+                    name="proof" 
+                    class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+                    required 
+                />
+                @error('proof')
+                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="px-3 py-1 text-sm bg-blue-500 text-white dark:bg-blue-600 dark:text-white rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-150">
+                Mark Complete
+            </button>
+        </form>
+    @endif
+</td>
+
         </tr>
     @empty
         <!-- No Tasks Found -->
