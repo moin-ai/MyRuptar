@@ -111,7 +111,22 @@
             <span class="text-red-500 text-sm">{{ $message }}</span>
         @enderror
     </div>
-
+    
+    <!-- Attachment -->
+<div class="mt-4">
+    <label for="attachment" class="block font-medium text-gray-700 dark:text-gray-300">
+        {{ __('Attachment') }}
+    </label>
+    <input 
+        id="attachment" 
+        type="file" 
+        name="attachment" 
+        class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+    />
+    @error('attachment')
+        <span class="text-red-500 text-sm">{{ $message }}</span>
+    @enderror
+</div>
 
 
 

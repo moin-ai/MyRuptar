@@ -48,12 +48,26 @@ class TaskController extends Controller
     try {
         DB::beginTransaction();
 
+        // Validate input
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'due_date' => 'required|date',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Validate image file
+        ]);
+
+        // Handle file upload
+        $attachmentPath = null;
+    if ($request->hasFile('attachment')) {
+        $attachmentPath = $request->file('attachment')->store('attachments', 'public');
+    }
+
+        // Create task
         $task = Task::create([
             'name' => $request->name,
             'description' => $request->description,
             'due_date' => $request->due_date,
-            'image' => $request->hasFile('image') ? 
-                $request->file('image')->store('task-images', 'public') : null
+            'attachment' => $attachmentPath, // Save the attachment path
         ]);
 
         // Get all students and create assignments
@@ -74,13 +88,14 @@ class TaskController extends Controller
         }
 
         DB::commit();
-        return redirect()->back()->with('success', 'Task created and assigned to all students!');
+        return redirect()->back()->with('success', 'Task created with an attachment and assigned to all students!');
 
     } catch (\Exception $e) {
         DB::rollBack();
         return redirect()->back()->with('error', 'Failed to create task. Please try again.');
     }
 }
+
 
     
 

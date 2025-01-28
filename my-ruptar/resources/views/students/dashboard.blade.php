@@ -67,74 +67,102 @@
                 </div>
             </div>
 
-            <!-- Tasks Table -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">My Tasks</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="bg-gray-50 dark:bg-gray-700">
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Task</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Due Date</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @forelse($tasks as $task)
-                                    <tr class="group hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-150">
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $task->name }}
-                                            </div>
-                                            <div class="text-sm text-gray-600 dark:text-gray-300">
-                                                {{ $task->description }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-600 dark:text-gray-300">
-                                                {{ Carbon\Carbon::parse($task->due_date)->format('M d, Y') }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($task->completed_at)
-                                                <span class="text-sm text-green-600 dark:text-green-300">
-                                                    Completed
-                                                </span>
-                                            @elseif($task->is_overdue)
-                                                <span class="text-sm text-red-600 dark:text-red-600">
-                                                    Overdue
-                                                </span>
-                                            @else
-                                                <span class="text-sm text-red-600 dark:text-red-600">
-                                                    Pending
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if(!$task->completed_at && !$task->is_overdue)
-                                                <form action="{{ route('tasks.complete', $task->assignment_id) }}" method="POST" class="inline-block">
-                                                    @csrf
-                                                    <button type="submit" class="px-3 py-1 text-sm bg-blue-500 text-white dark:bg-blue-600 dark:text-white rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-150">
-                                                        Mark Complete
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                            No tasks found
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+           <!-- Tasks Table -->
+<div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
+    <div class="p-6">
+        <h3 class="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">My Tasks</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+            <thead>
+    <tr class="bg-gray-50 dark:bg-gray-700">
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Task</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Attachment</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Due Date</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+    </tr>
+</thead>
+<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+    @forelse($tasks as $task)
+        <tr class="group hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-150">
+            <!-- Task Name and Description -->
+            <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {{ $task->name }}
                 </div>
-            </div>
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    {{ $task->description }}
+                </div>
+            </td>
+
+            <!-- Attachment -->
+            <td class="px-6 py-4">
+                @if($task->attachment)
+                    @if(Str::endsWith($task->attachment, ['.jpg', '.jpeg', '.png']))
+                        <!-- Display as an image -->
+                        <img src="{{ asset('storage/' . $task->attachment) }}" alt="{{ $task->name }}" class="mt-2 max-w-xs rounded shadow-md">
+                    @else
+                        <!-- Provide a download link for other file types -->
+                        <a href="{{ asset('storage/' . $task->attachment) }}" target="_blank" class="text-blue-500 hover:underline">
+                            Download Attachment
+                        </a>
+                    @endif
+                @else
+                    <span class="text-sm text-gray-500">No Attachment</span>
+                @endif
+            </td>
+
+            <!-- Due Date -->
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    {{ Carbon\Carbon::parse($task->due_date)->format('M d, Y') }}
+                </div>
+            </td>
+
+            <!-- Status -->
+            <td class="px-6 py-4 whitespace-nowrap">
+                @if($task->completed_at)
+                    <span class="text-sm text-green-600 dark:text-green-300">
+                        Completed
+                    </span>
+                @elseif($task->is_overdue)
+                    <span class="text-sm text-red-600 dark:text-red-600">
+                        Overdue
+                    </span>
+                @else
+                    <span class="text-sm text-red-600 dark:text-red-600">
+                        Pending
+                    </span>
+                @endif
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 whitespace-nowrap">
+                @if(!$task->completed_at && !$task->is_overdue)
+                    <form action="{{ route('tasks.complete', $task->assignment_id) }}" method="POST" class="inline-block">
+                        @csrf
+                        <button type="submit" class="px-3 py-1 text-sm bg-blue-500 text-white dark:bg-blue-600 dark:text-white rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-150">
+                            Mark Complete
+                        </button>
+                    </form>
+                @endif
+            </td>
+        </tr>
+    @empty
+        <!-- No Tasks Found -->
+        <tr>
+            <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                No tasks found.
+            </td>
+        </tr>
+    @endforelse
+</tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
 </x-app-layout>
