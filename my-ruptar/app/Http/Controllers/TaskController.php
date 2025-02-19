@@ -15,7 +15,11 @@ class TaskController extends Controller
 
 
    
-
+    public function create()
+    {
+        $students = User::where('role', 'student')->get(); // Fetch all students
+        return view('tasks.create', compact('students')); // Pass students to the view
+    }
     /**
      * Display a listing of tasks with optional search functionality.
      */
@@ -23,9 +27,9 @@ class TaskController extends Controller
     {
         // Authorize the action using a Gate
         Gate::authorize('view-tasks');
-
+    
         $query = Task::query();
-
+    
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
@@ -33,10 +37,16 @@ class TaskController extends Controller
                   ->orWhere('description', 'LIKE', "%{$searchTerm}%");
             });
         }
-
+    
         $tasks = $query->orderBy('due_date', 'asc')->paginate(6);
-        return view('tasks.index', compact('tasks'));
+        
+        // Fetch all students
+        $students = User::where('role', 'student')->get();
+    
+        // Pass both tasks and students to the view
+        return view('tasks.index', compact('tasks', 'students'));
     }
+    
 
     /**
      * Store a newly created task.
@@ -53,48 +63,68 @@ class TaskController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'due_date' => 'required|date',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Validate image file
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'selected_students' => 'nullable|array',
+            'selected_students.*' => 'exists:users,id',
         ]);
 
         // Handle file upload
         $attachmentPath = null;
-    if ($request->hasFile('attachment')) {
-        $attachmentPath = $request->file('attachment')->store('attachments', 'public');
-    }
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('attachments', 'public');
+        }
 
         // Create task
         $task = Task::create([
             'name' => $request->name,
             'description' => $request->description,
             'due_date' => $request->due_date,
-            'attachment' => $attachmentPath, // Save the attachment path
+            'attachment' => $attachmentPath,
         ]);
 
-        // Get all students and create assignments
-        $students = User::where('role', 'student')->get();
-        
-        foreach ($students as $student) {
-            // Create task assignment
-            DB::table('task_assignments')->insert([
-                'task_id' => $task->id,
-                'user_id' => $student->id,
-                'assigned_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-
-            // Send notification
-            $student->notify(new NewTaskNotification($task));
+        // Assign task to students
+        if ($request->has('massAssign')) {
+            // Assign to all students
+            $students = User::where('role', 'student')->get();
+            foreach ($students as $student) {
+                DB::table('task_assignments')->insert([
+                    'task_id' => $task->id,
+                    'user_id' => $student->id,
+                    'assigned_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $student->notify(new NewTaskNotification($task));
+            }
+        } else {
+            // Assign to selected students
+            if ($request->filled('selected_students')) {
+                foreach ($request->selected_students as $studentId) {
+                    DB::table('task_assignments')->insert([
+                        'task_id' => $task->id,
+                        'user_id' => $studentId,
+                        'assigned_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $selectedStudents = User::whereIn('id', $request->selected_students)->get();
+                    foreach ($selectedStudents as $student) {
+                        $student->notify(new NewTaskNotification($task));
+                    }
+                }
+            }
         }
 
         DB::commit();
-        return redirect()->back()->with('success', 'Task created with an attachment and assigned to all students!');
+        return redirect()->back()->with('success', 'Task created and assigned successfully!');
 
     } catch (\Exception $e) {
         DB::rollBack();
         return redirect()->back()->with('error', 'Failed to create task. Please try again.');
     }
 }
+
+    
 
 
     
