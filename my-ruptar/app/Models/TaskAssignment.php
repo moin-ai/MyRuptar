@@ -9,7 +9,8 @@ class TaskAssignment extends Model
         'task_id',
         'user_id',
         'assigned_at',
-        'completed_at'
+        'completed_at',
+        'proof',
     ];
 
     protected $dates = [

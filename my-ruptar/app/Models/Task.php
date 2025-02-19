@@ -11,7 +11,7 @@ class Task extends Model
         'name',
         'description',
         'due_date',
-        'image'
+        'attachment',
     ];
 
     public function assignments()

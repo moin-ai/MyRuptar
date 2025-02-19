@@ -50,7 +50,8 @@
 
 
   <!-- Task Creation Form -->
-  <div id="taskFormContainer" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mx-auto relative pt-6" style="max-width: 50%; width: 50%;">
+<!-- Task Creation Form -->
+<div id="taskFormContainer" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mx-auto relative pt-6" style="max-width: 50%; width: 50%;">
 
 <!-- Form Title -->
 <h1 class="text-xl font-bold text-center mb-4 text-gray-900 dark:text-gray-100">
@@ -102,7 +103,7 @@
         </label>
         <input 
             id="due_date" 
-            type="text" 
+            type="date" 
             name="due_date" 
             class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50" 
             required 
@@ -112,24 +113,84 @@
         @enderror
     </div>
 
+    <!-- Attachment -->
+    <div class="mt-4">
+        <label for="attachment" class="block font-medium text-gray-700 dark:text-gray-300">
+            {{ __('Attachment') }}
+        </label>
+        <input 
+            id="attachment" 
+            type="file" 
+            name="attachment" 
+            class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+        />
+        @error('attachment')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
 
+    <!-- Assign Students -->
+    <div class="mt-4">
+        <label class="block font-medium text-gray-700 dark:text-gray-300">
+            {{ __('Assign to Students') }}
+        </label>
 
+        <!-- Mass Assign Checkbox -->
+        <div class="flex items-center space-x-2">
+            <input type="checkbox" id="massAssign" name="massAssign" class="h-5 w-5 text-blue-500">
+            <label for="massAssign" class="text-gray-700 dark:text-gray-300">{{ __('Assign to All Students') }}</label>
+        </div>
+
+        <!-- Select Specific Students -->
+        <div id="studentSelectContainer" class="overflow-x-auto border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+        <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+            <thead class="bg-gray-100 dark:bg-gray-700">
+                <tr>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-200">{{ __('Select') }}</th>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-200">{{ __('Name') }}</th>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-200">{{ __('Student ID') }}</th>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-200">{{ __('Contact Number') }}</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-300 dark:divide-gray-600">
+                @foreach($students as $student)
+                    <tr>
+                        <td class="py-2 px-4">
+                            <input type="checkbox" name="selected_students[]" value="{{ $student->id }}" class="h-5 w-5 text-blue-500">
+                        </td>
+                        <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ $student->name }}</td>
+                        <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ $student->student_id }}</td>
+                        <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ $student->contact_number }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    @error('selected_students')
+        <span class="text-red-500 text-sm">{{ $message }}</span>
+    @enderror
+    </div>
 
     <!-- Submit Button -->
     <div class="flex items-center justify-end mt-6 space-x-4">
-<!-- Close Button -->
-<button id="closeTaskForm" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
-    {{ __('Close') }}
-</button>
+        <button id="closeTaskForm" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+            {{ __('Close') }}
+        </button>
 
-<!-- Submit Button -->
-<button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
-    {{ __('Submit Task') }}
-</button>
-</div>
-
+        <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+            {{ __('Submit Task') }}
+        </button>
+    </div>
 </form>
 </div>
+
+<script>
+    document.getElementById('massAssign').addEventListener('change', function() {
+        document.getElementById('studentSelectContainer').style.display = this.checked ? 'none' : 'block';
+    });
+</script>
+
 <!-- Tasks Grid -->
 <div id="taskGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
     @forelse ($tasks as $task)
@@ -216,6 +277,7 @@
         enableTime: true,
         dateFormat: "Y-m-d H:i",
         time_24hr: true,
+        minDate: "today"
     });
 
     // Close Form

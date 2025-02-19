@@ -17,10 +17,12 @@
         @method('patch')
 
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
-        </div>
+    <x-input-label for="name" :value="__('Name')" />
+    <p id="name" class="mt-1 block w-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md shadow-sm px-3 py-2">
+        {{ $user->name }}
+    </p>
+</div>
+
 
         <div>
             <x-input-label for="contact_number" :value="__('Contact Number')" />
