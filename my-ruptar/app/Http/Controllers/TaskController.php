@@ -45,8 +45,40 @@ class TaskController extends Controller
     
         // Pass both tasks and students to the view
         return view('tasks.index', compact('tasks', 'students'));
+
+        $tasks = $query->with('assignedStudents')->orderBy('due_date', 'asc')->paginate(6);
+
+        // Fetch all students for selection in task creation form
+        $students = User::where('role', 'student')->get();
+
+        // Pass both tasks and students to the view
+        return view('tasks.index', compact('tasks', 'students'));
+
+        $query = Task::query();
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('description', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+
+         $tasks = Task::with('assignedStudents')->orderBy('due_date', 'asc')->paginate(6);
+    
+        // Fetch all students
+        $students = User::where('role', 'student')->get();
+
+        // Pass both tasks and students to the view
+        return view('tasks.index', compact('tasks', 'students'));
     }
     
+    public function show($id)
+    {
+        $task = Task::with('assigned_students')->findOrFail($id);
+
+        return response()->json($task);
+    }
 
     /**
      * Store a newly created task.

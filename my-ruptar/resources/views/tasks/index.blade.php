@@ -204,30 +204,40 @@
                     {{ $task->description }}
                 </p>
             </div>
-            
+
             <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 {{ \Carbon\Carbon::parse($task->due_date)->format('M d, Y h:i A') }}
             </div>
-        </div>
-        
-        <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button onclick="openEditTaskModal({{ json_encode($task) }})" 
-                    class="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors">
+
+            <!-- Attachment Display -->
+            @if($task->attachment)
+            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
-                Edit
+                <a href="{{ asset('storage/' . $task->attachment) }}" target="_blank" class="hover:underline">
+                    View Attachment
+                </a>
+            </div>
+            @endif
+        </div>
+
+        <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button onclick="openTaskDetailsModal({{ json_encode($task) }})" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7 1.274 4.057-2.515 9-7 9-4.479 0-8.269-4.943-9.542-9z" />
+                </svg>
+                View Details
             </button>
-            
-            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" 
-                  onsubmit="return confirm('Are you sure you want to delete this task?')">
+
+            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure you want to delete this task?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" 
-                        class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                <button type="submit" class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -235,6 +245,26 @@
                 </button>
             </form>
         </div>
+         <!-- Assigned Students and Completion Status -->
+ <div class="mt-4">
+    <strong class="text-gray-700 dark:text-gray-300">Assigned To:</strong>
+    <ul class="mt-2 space-y-1">
+        @if($task->assignedStudents)
+            @foreach($task->assignedStudents as $student)
+                <li class="text-gray-600 dark:text-gray-400">
+                    {{ $student->name }} 
+                    @if($student->pivot->completion_status == 'completed')
+                        (✅ Completed)
+                    @else
+                        (❌ Pending)
+                    @endif
+                </li>
+            @endforeach
+        @else
+            <li class="text-gray-600 dark:text-gray-400">No students assigned</li>
+        @endif
+    </ul>
+</div>
     </div>
     @empty
     <div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400 rounded-xl">
@@ -242,6 +272,81 @@
     </div>
     @endforelse
 </div>
+
+
+
+<!-- Task Details Modal -->
+<div id="taskDetailsModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200" id="modalTaskName"></h2>
+        <p class="text-gray-600 dark:text-gray-400 mt-2" id="modalTaskDescription"></p>
+        
+        <div class="mt-4">
+            <strong class="text-gray-700 dark:text-gray-300">Assigned To:</strong>
+            <ul id="modalTaskStudents" class="mt-1 space-y-1"></ul>
+        </div>
+
+        <div class="mt-4">
+            <strong class="text-gray-700 dark:text-gray-300">Assigned At:</strong>
+            <p id="modalTaskAssignedAt" class="text-gray-600 dark:text-gray-400"></p>
+        </div>
+
+        <div class="mt-4">
+            <strong class="text-gray-700 dark:text-gray-300">Attachments:</strong>
+            <ul id="modalTaskAttachments" class="mt-1 space-y-1"></ul>
+        </div>
+
+        <button onclick="closeTaskModal()" class="mt-6 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+            Close
+        </button>
+    </div>
+</div>
+
+@push('scripts')
+    <script>
+        // Get references to the modal and form elements
+        const openTaskFormButton = document.getElementById('createTaskButton');
+        const closeTaskFormButton = document.getElementById('closeTaskForm');
+        const taskFormContainer = document.getElementById('taskFormContainer');
+
+        // Event listener for opening the modal
+        openTaskFormButton.addEventListener('click', () => {
+            taskFormContainer.classList.remove('hidden');
+        });
+
+        // Event listener for closing the modal
+        closeTaskFormButton.addEventListener('click', () => {
+            taskFormContainer.classList.add('hidden');
+        });
+    </script>
+    @endpush
+
+<script>
+    function openTaskDetails(task) {
+        document.getElementById('modalTaskName').innerText = task.name;
+        document.getElementById('modalTaskDescription').innerText = task.description;
+        document.getElementById('modalTaskAssignedAt').innerText = new Date(task.created_at).toLocaleString();
+
+        let studentsHtml = '';
+        task.students.forEach(student => {
+            studentsHtml += `<li class="text-gray-600 dark:text-gray-400">• ${student.name} (${student.pivot.status === 'completed' ? '✅ Completed' : '❌ Pending'})</li>`;
+        });
+        document.getElementById('modalTaskStudents').innerHTML = studentsHtml;
+
+        let attachmentsHtml = '';
+        task.attachments.forEach(attachment => {
+            attachmentsHtml += `<li><a href="/storage/${attachment.file_path}" target="_blank" class="text-blue-500 hover:underline">📎 ${attachment.file_name}</a></li>`;
+        });
+        document.getElementById('modalTaskAttachments').innerHTML = attachmentsHtml;
+
+        document.getElementById('taskDetailsModal').classList.remove('hidden');
+    }
+
+    function closeTaskModal() {
+        document.getElementById('taskDetailsModal').classList.add('hidden');
+    }
+</script>
+
 
 
 <!-- Load More Button -->
@@ -309,13 +414,13 @@
     @endif
 </script>
 
-<!-- Edit Task Modal -->
-<div id="editTaskModal" class="fixed z-10 inset-0 overflow-y-auto hidden border">
-    <div class="flex items-center justify-center min-h-screen">
-    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-md shadow-lg w-96">
 
+<!-- Edit Task Modal -->
+<div id="editTaskModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-md shadow-lg w-96">
             <h2 class="text-lg font-bold mb-4">Edit Task</h2>
-            <form id="editTaskForm" method="POST" action="">
+            <form id="editTaskForm" method="POST" action="" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -334,7 +439,28 @@
                 <!-- Task Due Date -->
                 <div class="mb-4">
                     <label for="editDueDate" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Due Date</label>
-                    <input type="text" id="editDueDate" name="due_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
+                    <input type="datetime-local" id="editDueDate" name="due_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
+                </div>
+
+                <!-- Attachment -->
+                <div class="mb-4">
+                    <label for="editAttachment" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Attachment</label>
+                    <input type="file" id="editAttachment" name="attachment" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300">
+                </div>
+
+                <!-- Student Selection -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Reassign Students</label>
+                    <div class="mt-2 space-y-2">
+                        @if(isset($students))
+                        @foreach($students as $student)
+                        <div class="flex items-center">
+                            <input type="checkbox" name="selected_students[]" value="{{ $student->id }}" id="editStudent_{{ $student->id }}" class="rounded border-gray-300 text-blue-500 shadow-sm focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-blue-400">
+                            <label for="editStudent_{{ $student->id }}" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ $student->name }}</label>
+                        </div>
+                        @endforeach
+                        @endif
+                    </div>
                 </div>
 
                 <!-- Actions -->
@@ -347,6 +473,7 @@
     </div>
 </div>
 
+
 <script>
     // Initialize Flatpickr for Edit Due Date
     flatpickr("#editDueDate", {
@@ -358,31 +485,47 @@
 
 
 <script>
-    function openEditTaskModal(task) {
-    // Get the modal and form elements
-    const modal = document.getElementById('editTaskModal');
-    const form = document.getElementById('editTaskForm');
+ document.addEventListener('DOMContentLoaded', function () {
+    // Task Creation Modal
+    const openTaskFormButton = document.getElementById('openTaskFormButton');
+    const closeTaskFormButton = document.getElementById('closeTaskFormButton');
+    const taskFormModal = document.getElementById('taskFormModal');
 
-    // Populate form fields with task data
-    document.getElementById('editName').value = task.name || '';
-    document.getElementById('editDescription').value = task.description || '';
-    document.getElementById('editDueDate').value = task.due_date || '';
+    // Edit Task Modal
+    const editTaskModal = document.getElementById('editTaskModal');
+    const editTaskForm = document.getElementById('editTaskForm');
+    const editNameInput = document.getElementById('editName');
+    const editDescriptionTextarea = document.getElementById('editDescription');
+    const editDueDateInput = document.getElementById('editDueDate');
 
+    // Open task form modal
+    openTaskFormButton.addEventListener('click', function () {
+        taskFormModal.classList.remove('hidden');
+    });
 
-    // Set form action URL
-    form.action = `/tasks/${task.id}`;
+    // Close task form modal
+    closeTaskFormButton.addEventListener('click', function () {
+        taskFormModal.classList.add('hidden');
+    });
 
-    // Show the modal
-    modal.classList.remove('hidden');
-}
+    // Function to open edit task modal and populate data
+    window.openEditTaskModal = function (task) {
+        editNameInput.value = task.name;
+        editDescriptionTextarea.value = task.description;
+        editDueDateInput.value = task.due_date;
 
-function closeEditTaskModal() {
-    // Hide the modal
-    const modal = document.getElementById('editTaskModal');
-    modal.classList.add('hidden');
-}
+        // Set the action URL for the edit form
+        editTaskForm.action = `/tasks/${task.id}`; // Assumes your route is /tasks/{task}
 
-    </script>
+        editTaskModal.classList.remove('hidden');
+    };
+
+    // Function to close edit task modal
+    window.closeEditTaskModal = function () {
+        editTaskModal.classList.add('hidden');
+    };
+});
+</script>
 
 <script>
     document.getElementById('loadMoreButton')?.addEventListener('click', function() {
