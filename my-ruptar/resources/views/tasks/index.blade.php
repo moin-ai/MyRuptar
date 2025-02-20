@@ -227,32 +227,29 @@
 
         
          <!-- Assigned Students and Completion Status -->
- <div class="mt-4">
+ <!-- Assigned Students and Completion Status -->
+<div class="mt-4">
     <strong class="text-gray-700 dark:text-gray-300">Assigned To:</strong>
     <table class="w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden shadow-lg">
-    <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-        <tr>
-            <th class="px-4 py-2 text-left">Student ID</th>
-            <th class="px-4 py-2 text-left">Student Name</th>
-            <th class="px-4 py-2 text-left">Assigned At</th>
-        </tr>
-    </thead>
-    <tbody class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        @foreach ($tasks as $task)
-            @foreach ($task->assignedStudents as $student)
+        <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+            <tr>
+                <th class="px-4 py-2 text-left">Student ID</th>
+                <th class="px-4 py-2 text-left">Student Name</th>
+                <th class="px-4 py-2 text-left">Assigned At</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+            @foreach ($task->assignedStudents as $student) 
                 <tr class="border-b border-gray-300 dark:border-gray-700">
                     <td class="px-4 py-2">{{ $student->student_id }}</td>
                     <td class="px-4 py-2">{{ $student->name }}</td>
                     <td class="px-4 py-2">{{ $student->pivot->assigned_at ?? 'N/A' }}</td>
                 </tr>
             @endforeach
-        @endforeach
-    </tbody>
-</table>
-
-       
-    </ul>
+        </tbody>
+    </table>
 </div>
+
 <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button onclick="openTaskDetailsModal({{ json_encode($task) }})" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
