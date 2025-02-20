@@ -171,10 +171,26 @@ return view('tasks.index', compact('tasks'));
     {
         // Authorize the action using a Gate
         Gate::authorize('edit-task');
-
+    
         $task = Task::findOrFail($id);
-        return response()->json($task);
+    
+        return response()->json([
+            'id' => $task->id,
+            'name' => $task->name,
+            'description' => $task->description,
+            'due_date' => $task->due_date,
+            'assigned_students' => $task->students->pluck('id'), // Get only assigned student IDs
+            'all_students' => Student::select('id', 'name')->get(), // Get all students
+            'attachments' => $task->attachments->map(function ($attachment) {
+                return [
+                    'name' => basename($attachment->path),
+                    'url' => asset('storage/' . $attachment->path),
+                ];
+            }),
+        ]);
     }
+    
+    
 
     /**
      * Update the specified task.

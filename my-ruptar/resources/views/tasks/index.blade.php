@@ -231,7 +231,6 @@
                     <tr>
                         <th class="px-4 py-2 text-left">Student ID</th>
                         <th class="px-4 py-2 text-left">Student Name</th>
-                        <th class="px-4 py-2 text-left">Assigned At</th>
                         <th class="px-4 py-2 text-left">Completion Status</th>
                     </tr>
                 </thead>
@@ -240,7 +239,6 @@
                         <tr class="border-b border-gray-300 dark:border-gray-700">
                             <td class="px-4 py-2">{{ $student->student_id }}</td>
                             <td class="px-4 py-2">{{ $student->name }}</td>
-                            <td class="px-4 py-2">{{ $student->pivot->assigned_at ?? 'N/A' }}</td>
                             <td class="px-4 py-2">{{ $student->pivot->completion_status ?? 'Pending' }}</td>
                         </tr>
                     @endforeach
@@ -249,15 +247,8 @@
         </div>
 
         <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button onclick="openTaskDetailsModal({{ json_encode($task) }})" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7 1.274 4.057-2.515 9-7 9-4.479 0-8.269-4.943-9.542-9z" />
-                </svg>
-                View Details
-            </button>
-
-            <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure you want to delete this task?')">
+        <button onclick='openEditTaskModal(@json($task))' class="bg-yellow-500 text-white px-4 py-2 rounded-md">Edit</button>
+        <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" onsubmit="return confirm('Are you sure you want to delete this task?')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
@@ -276,35 +267,123 @@
     @endforelse
 </div>
 
+<!-- Edit Task Modal -->
+<div id="editTaskModal" class="fixed z-10 inset-0 overflow-y-auto hidden border">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-6 rounded-md shadow-lg w-96">
+            <h2 class="text-lg font-bold mb-4">Edit Task</h2>
+            <form id="editTaskForm" method="POST" action="" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
 
+                <!-- Task Name -->
+                <div class="mb-4">
+                    <label for="editName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
+                    <input type="text" id="editName" name="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
+                </div>
 
+                <!-- Task Description -->
+                <div class="mb-4">
+                    <label for="editDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Description</label>
+                    <textarea id="editDescription" name="description" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required></textarea>
+                </div>
 
-<!-- Task Details Modal -->
-<div id="taskDetailsModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200" id="modalTaskName"></h2>
-        <p class="text-gray-600 dark:text-gray-400 mt-2" id="modalTaskDescription"></p>
-        
-        <div class="mt-4">
-            <strong class="text-gray-700 dark:text-gray-300">Assigned To:</strong>
-            <ul id="modalTaskStudents" class="mt-1 space-y-1"></ul>
+                <!-- Task Due Date -->
+                <div class="mb-4">
+                    <label for="editDueDate" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Due Date</label>
+                    <input type="date" id="editDueDate" name="due_date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300" required>
+                </div>
+
+                <!-- Assign Students -->
+                <div class="mb-4">
+                    <!-- <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Assign to Students</label> -->
+
+                    
+                    <select id="editAssignedStudents" name="assigned_students[]" multiple class="w-full border-gray-300 rounded-md dark:bg-gray-700 dark:text-gray-300">
+                        <!-- Student options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <!-- Task Image -->
+                <div class="mb-4">
+                    <label for="editImage" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Image</label>
+                    <input type="file" id="editImage" name="image" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300">
+                </div>
+
+                <!-- Existing Attachments -->
+                <div id="existingAttachments" class="mb-4">
+                    <!-- Attachments will be dynamically populated -->
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeEditTaskModal()" class="bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md">Save Changes</button>
+                </div>
+            </form>
         </div>
-
-        <div class="mt-4">
-            <strong class="text-gray-700 dark:text-gray-300">Assigned At:</strong>
-            <p id="modalTaskAssignedAt" class="text-gray-600 dark:text-gray-400"></p>
-        </div>
-
-        <div class="mt-4">
-            <strong class="text-gray-700 dark:text-gray-300">Attachments:</strong>
-            <ul id="modalTaskAttachments" class="mt-1 space-y-1"></ul>
-        </div>
-
-        <button onclick="closeTaskModal()" class="mt-6 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-            Close
-        </button>
     </div>
 </div>
+
+<script>
+function openEditTaskModal(task) {
+    // Get modal and form elements
+    const modal = document.getElementById('editTaskModal');
+    const form = document.getElementById('editTaskForm');
+
+    // Populate form fields
+    document.getElementById('editName').value = task.name || '';
+    document.getElementById('editDescription').value = task.description || '';
+    document.getElementById('editDueDate').value = task.due_date || '';
+
+    // Set form action URL
+    form.action = `/tasks/${task.id}`;
+
+    // Populate assigned students dropdown
+    const studentSelect = document.getElementById('editAssignedStudents');
+    studentSelect.innerHTML = ''; // Clear previous options
+
+    // ✅ Fix: Ensure `all_students` exists before looping
+    if (Array.isArray(task.all_students)) {
+        task.all_students.forEach(student => {
+            const selected = Array.isArray(task.assigned_students) && task.assigned_students.includes(student.id) ? 'selected' : '';
+            studentSelect.innerHTML += `<option value="${student.id}" ${selected}>${student.name}</option>`;
+        });
+    } else {
+        console.warn("all_students is missing or not an array", task);
+    }
+
+    // Populate existing attachments
+    const existingAttachmentsDiv = document.getElementById('existingAttachments');
+    existingAttachmentsDiv.innerHTML = ''; // Clear previous attachments
+
+    // ✅ Fix: Ensure `attachments` exists before looping
+    if (Array.isArray(task.attachments)) {
+        task.attachments.forEach(attachment => {
+            existingAttachmentsDiv.innerHTML += `<div class='p-2 border rounded mb-1'>
+                <a href="${attachment.url}" target="_blank" class="text-blue-600">${attachment.name}</a>
+            </div>`;
+        });
+    } else {
+        console.warn("attachments is missing or not an array", task);
+    }
+
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+function closeEditTaskModal() {
+    const modal = document.getElementById('editTaskModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+</script>
+
+
+
+
 
 @push('scripts')
     <script>
@@ -523,6 +602,7 @@
 
         editTaskModal.classList.remove('hidden');
     };
+    
 
     // Function to close edit task modal
     window.closeEditTaskModal = function () {
