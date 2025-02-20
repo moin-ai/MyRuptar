@@ -48,6 +48,9 @@ class TaskController extends Controller
 
         $tasks = $query->with('assignedStudents')->orderBy('due_date', 'asc')->paginate(6);
 
+        $tasks = Task::with('assignedStudents')->get();
+return view('tasks.index', compact('tasks'));
+
         // Fetch all students for selection in task creation form
         $students = User::where('role', 'student')->get();
 

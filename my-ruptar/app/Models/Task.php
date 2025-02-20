@@ -28,5 +28,10 @@ class Task extends Model
     });
 }
 
+public function assignedStudents()
+{
+    return $this->hasManyThrough(Student::class, TaskAssignment::class, 'task_id', 'id', 'id', 'user_id');
+}
+
 }
 
