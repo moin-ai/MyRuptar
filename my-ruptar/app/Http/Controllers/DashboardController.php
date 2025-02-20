@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function wardenDashboard()
+    public function wardenDashboard(Request $request)
     {
         // Basic Overview Statistics
         $overview = [
@@ -38,7 +39,40 @@ class DashboardController extends Controller
         // Task Completion Trends
         $completionTrends = $this->getCompletionTrends();
 
-        return view('dashboard', compact('overview', 'studentPerformance', 'completionTrends'));
+        // New reporting features
+        $tasks = Task::with(['assignments.user'])->get();
+        $students = User::where('role', 'student')->get();
+
+        // Selected student details
+        $selectedStudent = null;
+        $studentTasks = [];
+        $studentStats = [];
+        if ($request->has('student_id')) {
+            $selectedStudent = User::findOrFail($request->student_id);
+            
+            $studentStats = DB::table('task_assignments')
+                ->where('user_id', $selectedStudent->id)
+                ->selectRaw('COUNT(*) as total_assigned, 
+                            SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed')
+                ->first();
+
+            $studentTasks = DB::table('task_assignments')
+                ->where('user_id', $selectedStudent->id)
+                ->join('tasks', 'task_assignments.task_id', '=', 'tasks.id')
+                ->select('tasks.id', 'tasks.name', 'task_assignments.assigned_at', 'task_assignments.completed_at')
+                ->get();
+        }
+
+        return view('dashboard', compact(
+            'overview', 
+            'studentPerformance', 
+            'completionTrends',
+            'tasks',
+            'students',
+            'selectedStudent',
+            'studentTasks',
+            'studentStats'
+        ));
     }
 
     private function getCompletionTrends()
