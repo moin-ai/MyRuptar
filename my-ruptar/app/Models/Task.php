@@ -18,6 +18,7 @@ class Task extends Model
     {
         return $this->hasMany(TaskAssignment::class);
     }
+    
     protected static function boot()
 {
     parent::boot();
@@ -25,6 +26,11 @@ class Task extends Model
     static::deleting(function($task) {
         $task->assignments()->delete();
     });
+}
+
+public function assignedStudents()
+{
+    return $this->hasManyThrough(Student::class, TaskAssignment::class, 'task_id', 'id', 'id', 'user_id');
 }
 
 }
