@@ -192,7 +192,7 @@
 </script>
 
 <!-- Tasks Grid -->
-<div id="taskGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+<div id="taskGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
     @forelse ($tasks as $task)
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
         <div class="space-y-4">
@@ -212,7 +212,6 @@
                 {{ \Carbon\Carbon::parse($task->due_date)->format('M d, Y h:i A') }}
             </div>
 
-            <!-- Attachment Display -->
             @if($task->attachment)
             <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,32 +224,31 @@
             @endif
         </div>
 
-        
-         <!-- Assigned Students and Completion Status -->
- <!-- Assigned Students and Completion Status -->
-<div class="mt-4">
-    <strong class="text-gray-700 dark:text-gray-300">Assigned To:</strong>
-    <table class="w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden shadow-lg">
-        <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-            <tr>
-                <th class="px-4 py-2 text-left">Student ID</th>
-                <th class="px-4 py-2 text-left">Student Name</th>
-                <th class="px-4 py-2 text-left">Assigned At</th>
-            </tr>
-        </thead>
-        <tbody class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-            @foreach ($task->assignedStudents as $student) 
-                <tr class="border-b border-gray-300 dark:border-gray-700">
-                    <td class="px-4 py-2">{{ $student->student_id }}</td>
-                    <td class="px-4 py-2">{{ $student->name }}</td>
-                    <td class="px-4 py-2">{{ $student->pivot->assigned_at ?? 'N/A' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
+        <div class="mt-4">
+            <strong class="text-center text-gray-700 dark:text-gray-300 ">Assigned To:</strong>
+            <table class="w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden shadow-lg">
+                <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Student ID</th>
+                        <th class="px-4 py-2 text-left">Student Name</th>
+                        <th class="px-4 py-2 text-left">Assigned At</th>
+                        <th class="px-4 py-2 text-left">Completion Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                    @foreach ($task->assignedStudents as $student) 
+                        <tr class="border-b border-gray-300 dark:border-gray-700">
+                            <td class="px-4 py-2">{{ $student->student_id }}</td>
+                            <td class="px-4 py-2">{{ $student->name }}</td>
+                            <td class="px-4 py-2">{{ $student->pivot->assigned_at ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ $student->pivot->completion_status ?? 'Pending' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-<div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button onclick="openTaskDetailsModal({{ json_encode($task) }})" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -276,8 +274,8 @@
         No tasks found.
     </div>
     @endforelse
-    
 </div>
+
 
 
 
